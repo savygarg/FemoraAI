@@ -13,6 +13,7 @@ import HealthLogs from './pages/HealthLogs';
 import Prediction from './pages/Prediction';
 import Results from './pages/Results';
 import Chatbot from './pages/Chatbot';
+import BloodReport from './pages/BloodReport';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
             <Route path="/prediction" element={<Prediction />} />
             <Route path="/results" element={<Results />} />
             <Route path="/chatbot" element={<Chatbot />} />
+            <Route path="/blood-report" element={<BloodReport />} />
           </Route>
         </Route>
       </Routes>
