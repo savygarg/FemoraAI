@@ -40,6 +40,26 @@ const NAV_ITEMS = [
     ),
   },
 
+  // NEW — BLOOD REPORT
+  {
+    label: 'Blood Report',
+    to: '/blood-report',
+    icon: (
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M12 2.5C12 2.5 5 10 5 15a7 7 0 0 0 14 0c0-5-7-12.5-7-12.5zm0 17a4.5 4.5 0 0 1-4.5-4.5c0-2.35 2.42-5.82 4.5-8.52 2.08 2.7 4.5 6.17 4.5 8.52A4.5 4.5 0 0 1 12 19.5z"
+          fill="currentColor"
+        />
+      </svg>
+    ),
+  },
+
   {
     label: 'AI Prediction',
     to: '/prediction',
@@ -66,7 +86,6 @@ const NAV_ITEMS = [
     ),
   },
 
-  // NEW — AI HEALTH ASSISTANT
   {
     label: 'AI Health Assistant',
     to: '/chatbot',
