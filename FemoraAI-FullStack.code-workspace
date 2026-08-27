@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "name": "BACKEND",
+      "path": "backend"
+    },
+    {
+      "name": "FRONTEND",
+      "path": "FemoraAI"
+    }
+  ],
+  "settings": {}
+}
