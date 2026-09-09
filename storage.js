@@ -1,20 +1,44 @@
-export const STORAGE_KEYS = {
-  HEALTH_PROFILE: 'femoraai_health_profile',
-  HEALTH_LOGS: 'femoraai_health_logs',
-  ASSESSMENT_RESULTS: 'femoraai_assessment_results',
-};
+const fs = require("fs");
+const path = require("path");
 
-export function readStorage(key, fallback) {
-  const raw = localStorage.getItem(key);
-  if (!raw) return fallback;
+const dataDirectory = path.join(__dirname, "data");
+
+if (!fs.existsSync(dataDirectory)) {
+  fs.mkdirSync(dataDirectory, { recursive: true });
+}
+
+function getFilePath(fileName) {
+  return path.join(dataDirectory, `${fileName}.json`);
+}
+
+function readData(fileName) {
+  const filePath = getFilePath(fileName);
+
+  if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, JSON.stringify([], null, 2));
+    return [];
+  }
 
   try {
-    return JSON.parse(raw);
-  } catch {
-    return fallback;
+    const data = fs.readFileSync(filePath, "utf-8");
+    return JSON.parse(data);
+  } catch (error) {
+    console.error(`Error reading ${fileName}:`, error.message);
+    return [];
   }
 }
 
-export function writeStorage(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+function writeData(fileName, data) {
+  const filePath = getFilePath(fileName);
+
+  fs.writeFileSync(
+    filePath,
+    JSON.stringify(data, null, 2),
+    "utf-8"
+  );
 }
+
+module.exports = {
+  readData,
+  writeData
+};
