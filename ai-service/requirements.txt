@@ -1,0 +1,16 @@
+pandas
+numpy
+scikit-learn==1.6.1
+xgboost
+joblib
+shap
+fastapi
+uvicorn
+easyocr
+opencv-python
+pillow
+python-dotenv
+python-multipart
+matplotlib
+seaborn
+pydantic
