@@ -44,6 +44,7 @@ export const predictionApi = {
 };
 
 export const assistantApi = {
+  getChats: () => api.get('/api/assistant/chats'),
   sendMessage: (payload) => api.post('/api/assistant/chat', payload),
 };
 

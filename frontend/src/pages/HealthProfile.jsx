@@ -32,6 +32,7 @@ const EXERCISE_OPTIONS = [
 function HealthProfile() {
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
+  const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     refreshUser().catch(() => {});
@@ -103,16 +104,41 @@ function HealthProfile() {
   const validate = () => {
     const nextErrors = {};
 
+    if (!profile.gender) {
+      nextErrors.gender = 'Select your gender.';
+    }
+
     if (!profile.age || Number(profile.age) <= 0) {
       nextErrors.age = 'Enter a valid age.';
+    }
+
+    if (profile.age !== '' && Number(profile.age) < 0) {
+      nextErrors.age = 'Age cannot be negative.';
+    }
+
+    if (profile.dob) {
+      const selectedDob = new Date(`${profile.dob}T00:00:00`);
+      const todayDate = new Date(`${today}T00:00:00`);
+
+      if (selectedDob > todayDate) {
+        nextErrors.dob = 'Date of birth cannot be in the future.';
+      }
     }
 
     if (!profile.height || Number(profile.height) <= 0) {
       nextErrors.height = 'Enter a valid height.';
     }
 
+    if (profile.height !== '' && Number(profile.height) < 0) {
+      nextErrors.height = 'Height cannot be negative.';
+    }
+
     if (!profile.weight || Number(profile.weight) <= 0) {
       nextErrors.weight = 'Enter a valid weight.';
+    }
+
+    if (profile.weight !== '' && Number(profile.weight) < 0) {
+      nextErrors.weight = 'Weight cannot be negative.';
     }
 
     if (!profile.bloodGroup) {
@@ -127,8 +153,16 @@ function HealthProfile() {
       nextErrors.cycleLength = 'Enter your average cycle length.';
     }
 
+    if (profile.cycleLength !== '' && Number(profile.cycleLength) < 0) {
+      nextErrors.cycleLength = 'Cycle length cannot be negative.';
+    }
+
     if (!profile.menstrualFlow) {
       nextErrors.menstrualFlow = 'Select your menstrual flow.';
+    }
+
+    if (profile.sleepDuration !== '' && Number(profile.sleepDuration) < 0) {
+      nextErrors.sleepDuration = 'Sleep duration cannot be negative.';
     }
 
     setErrors(nextErrors);
@@ -309,10 +343,19 @@ function HealthProfile() {
               <input
                 id="profile-dob"
                 type="date"
-                className="health-profile-input"
+                max={today}
+                className={
+                  errors.dob
+                    ? 'health-profile-input health-profile-input--error'
+                    : 'health-profile-input'
+                }
                 value={profile.dob || ''}
                 onChange={(e) => updateField('dob', e.target.value)}
               />
+
+              {errors.dob && (
+                <small className="health-profile-error">{errors.dob}</small>
+              )}
             </div>
 
             <div className="health-profile-field">
@@ -322,14 +365,23 @@ function HealthProfile() {
 
               <select
                 id="profile-gender"
-                className="health-profile-input"
-                value={profile.gender || 'Female'}
+                className={
+                  errors.gender
+                    ? 'health-profile-input health-profile-input--error'
+                    : 'health-profile-input'
+                }
+                value={profile.gender || ''}
                 onChange={(e) => updateField('gender', e.target.value)}
               >
-                <option>Female</option>
-                <option>Male</option>
-                <option>Other</option>
+                <option value="">Select gender</option>
+                <option value="Female">Female</option>
+                <option value="Male">Male</option>
+                <option value="Other">Other</option>
               </select>
+
+              {errors.gender && (
+                <small className="health-profile-error">{errors.gender}</small>
+              )}
             </div>
 
             <div className="health-profile-field">

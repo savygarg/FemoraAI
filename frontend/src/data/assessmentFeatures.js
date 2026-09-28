@@ -238,7 +238,8 @@ export function mapProfileToAssessmentForm(profile = {}) {
     mapped.Cycle_R_I = profile.periodRegularity === 'Regular' ? '1' : '0';
   }
   if (profile.cycleLength) mapped.Cycle_length_days = String(profile.cycleLength);
-  if (profile.gender === 'Female' || profile.gender === 'Male') {
+
+  if (profile.gender && (profile.gender === 'Female' || profile.gender === 'Male')) {
     const sexValue = profile.gender === 'Female' ? '0' : '1';
     mapped.Sex = sexValue;
     mapped.sex = sexValue;

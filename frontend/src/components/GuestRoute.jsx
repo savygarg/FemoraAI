@@ -2,7 +2,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function GuestRoute() {
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -10,10 +10,6 @@ function GuestRoute() {
         <p>Loading…</p>
       </div>
     );
-  }
-
-  if (user) {
-    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;

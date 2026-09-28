@@ -4,7 +4,7 @@ export const DEFAULT_HEALTH_PROFILE = {
   name: '',
   age: '',
   dob: '',
-  gender: 'Female',
+  gender: '',
   height: '',
   weight: '',
   bloodGroup: '',

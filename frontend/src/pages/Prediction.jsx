@@ -41,6 +41,7 @@ function Prediction() {
   const { user } = useAuth();
   const draftKey = getAssessmentDraftKey(user?.id);
 
+  const [storedGender, setStoredGender] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
   const [form, setForm] = useState(() => getInitialForm(draftKey));
   const [errors, setErrors] = useState({});
@@ -62,7 +63,10 @@ function Prediction() {
     profileApi.getProfile().then(({ data }) => {
       if (!isMounted || !data?.success) return;
 
-      const mappedValues = mapProfileToAssessmentForm(data.profile);
+      const profile = data.profile || {};
+      const mappedValues = mapProfileToAssessmentForm(profile);
+      setStoredGender(profile.gender || '');
+
       setForm((previous) => {
         const next = { ...previous };
 
@@ -148,6 +152,10 @@ function Prediction() {
   };
 
   const renderField = (field) => {
+    if ((field.key === 'Sex' || field.key === 'sex') && storedGender) {
+      return null;
+    }
+
     if (field.type === 'yesno') {
       const selected = form[field.key] === '1';
 
@@ -199,6 +207,7 @@ function Prediction() {
             id={field.key}
             type="number"
             step="any"
+            min="0"
             placeholder={field.placeholder}
             value={displayedForm[field.key]}
             onChange={(event) => updateField(field.key, event.target.value)}

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { assistantApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const suggestedQuestions = [
   'What do my symptoms mean?',
@@ -11,10 +12,73 @@ const suggestedQuestions = [
 ];
 
 function Chatbot() {
-  const [messages, setMessages] = useState([]);
+  const { user } = useAuth();
+  const [chatState, setChatState] = useState({ userId: user?.id, messages: [] });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [errorState, setErrorState] = useState({ userId: user?.id, error: '' });
+  const messages = chatState.userId === user?.id ? chatState.messages : [];
+  const error = errorState.userId === user?.id ? errorState.error : '';
+  const setMessages = (nextMessages) => {
+    setChatState((current) => ({
+      userId: user?.id,
+      messages:
+        typeof nextMessages === 'function'
+          ? nextMessages(current.userId === user?.id ? current.messages : [])
+          : nextMessages,
+    }));
+  };
+  const setError = (nextError) => {
+    setErrorState({ userId: user?.id, error: nextError });
+  };
+
+  useEffect(() => {
+    let isCurrentUser = true;
+    const userId = user?.id;
+
+    if (!userId) {
+      return () => {
+        isCurrentUser = false;
+      };
+    }
+
+    const loadChats = async () => {
+      try {
+        const { data } = await assistantApi.getChats();
+        if (!isCurrentUser) return;
+
+        const savedMessages = Array.isArray(data?.messages) ? data.messages : [];
+        const restoredMessages = savedMessages.map((message, index) => ({
+          id: `saved-${index}`,
+          type: message.role === 'user' ? 'user' : 'bot',
+          text: message.content,
+        }));
+
+        setChatState((current) => ({
+          userId,
+          messages:
+            current.userId === userId && current.messages.length
+              ? current.messages
+              : restoredMessages,
+        }));
+      } catch (requestError) {
+        if (isCurrentUser) {
+          setErrorState({
+            userId,
+            error:
+              requestError.response?.data?.message ||
+              'Unable to load your previous conversation. You can still start a new chat.',
+          });
+        }
+      }
+    };
+
+    loadChats();
+
+    return () => {
+      isCurrentUser = false;
+    };
+  }, [user?.id]);
 
   const sendMessage = async (messageText = input) => {
     const text = messageText.trim();
