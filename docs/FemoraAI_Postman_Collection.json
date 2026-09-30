@@ -1,0 +1,302 @@
+{
+  "info": {
+    "_postman_id": "a2da7876-5c41-4a74-976d-29e1c9a3d612",
+    "name": "FemoraAI API",
+    "description": "API documentation generated from the currently mounted FemoraAI backend routes. Protected requests use the collection token variable; authenticate with Login or Register first.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Service Status",
+      "item": [
+        {
+          "name": "Backend root",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/", "host": ["{{baseUrl}}"], "path": [""] },
+            "description": "Checks that the backend API is running.\n\nAuthentication: Not required.\nInput: None; no query or URL parameters.\nSuccess (200): `{ \"success\": true, \"message\": \"FemoraAI Backend API is running\" }`."
+          },
+          "response": []
+        },
+        {
+          "name": "Backend health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/health", "host": ["{{baseUrl}}"], "path": ["api", "health"] },
+            "description": "Checks backend service health.\n\nAuthentication: Not required.\nInput: None; no query or URL parameters.\nSuccess (200): `{ \"success\": true, \"message\": \"Server is healthy\" }`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Alex Morgan\",\n  \"email\": \"alex.morgan@example.com\",\n  \"password\": \"FemoraDemo2026\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] },
+            "description": "Creates a user account and returns a JWT.\n\nAuthentication: Not required.\nHeaders: `Content-Type: application/json`.\nBody: `name`, valid `email`, and `password` (at least 6 characters) are required.\nQuery/URL parameters: None.\nSuccess (201): `{ success, message, token, user: { id, name, email, createdAt } }`.\nErrors: 400 for missing/invalid fields or a short password; 409 if the email already exists; 500 for a server error. The returned token can authorize protected requests."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    if (data && typeof data.token === 'string' && data.token.length > 0) {",
+                  "        pm.collectionVariables.set('token', data.token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"alex.morgan@example.com\",\n  \"password\": \"FemoraDemo2026\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "description": "Authenticates an existing user. On a successful 200 response, the test script saves the root-level `token` field into the collection variable `token`.\n\nAuthentication: Not required.\nHeaders: `Content-Type: application/json`.\nBody: `email` and `password` are required.\nQuery/URL parameters: None.\nSuccess (200): `{ success, message, token, user: { id, name, email, createdAt } }`.\nErrors: 400 if email or password is missing; 401 for invalid credentials; 500 for a server error. Use Login or Register before calling protected endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Get current user",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] },
+            "description": "Returns the authenticated user's public account details.\n\nAuthentication: Required; `Authorization: Bearer {{token}}`. Obtain a token from Login or Register.\nHeaders: Bearer authorization; no request body.\nQuery/URL parameters: None.\nSuccess (200): `{ success: true, user: { id, name, email, createdAt } }`.\nErrors: 401 for missing, invalid, or expired JWT; 404 if the user no longer exists; 500 for a server error."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health Profile",
+      "item": [
+        {
+          "name": "Get health profile",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/profile", "host": ["{{baseUrl}}"], "path": ["api", "profile"] },
+            "description": "Returns the authenticated user's stored health profile; a new user may receive an empty profile object.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nInput: None; no query or URL parameters.\nSuccess (200): `{ success: true, profile: { ... } }`.\nErrors: 401 for missing, invalid, or expired JWT; 404 if the user does not exist; 500 for a server error."
+          },
+          "response": []
+        },
+        {
+          "name": "Save health profile",
+          "request": {
+            "method": "PUT",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"gender\": \"Female\",\n  \"age\": 29,\n  \"height\": 165,\n  \"weight\": 62,\n  \"bloodGroup\": \"O+\",\n  \"periodRegularity\": \"Regular\",\n  \"cycleLength\": 28,\n  \"menstrualFlow\": \"Moderate\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/api/profile", "host": ["{{baseUrl}}"], "path": ["api", "profile"] },
+            "description": "Creates or replaces the authenticated user's profile object.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nHeaders: `Content-Type: application/json`.\nBody: Required truthy fields are `gender`, `age`, `height`, `weight`, `bloodGroup`, `periodRegularity`, `cycleLength`, and `menstrualFlow`. `gender`, when provided, must be `Female`, `Male`, or `Other`; `age`, `height`, `weight`, `cycleLength`, and `sleepDuration` cannot be negative. Optional `dob`, if supplied, must not be in the future.\nQuery/URL parameters: None.\nSuccess (200): `{ success: true, message, profile: { ...submitted fields } }`.\nErrors: 400 for missing required fields or validation failure; 401 for missing, invalid, or expired JWT; 404 if user is not found; 500 for a server error."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI Predictions",
+      "item": [
+        {
+          "name": "Predict PCOS",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"features\": {\n    \"Age_yrs\": 29,\n    \"Weight_Kg\": 62,\n    \"Height_Cm\": 165,\n    \"BMI\": 22.8,\n    \"Cycle_R_I\": 1,\n    \"Cycle_length_days\": 28,\n    \"Pregnant_Y_N\": 0,\n    \"Weight_gain_Y_N\": 0,\n    \"hair_growth_Y_N\": 0\n  }\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/api/predictions/pcos", "host": ["{{baseUrl}}"], "path": ["api", "predictions", "pcos"] },
+            "description": "Runs a PCOS prediction through the AI service; this route does not save an assessment.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nHeaders: `Content-Type: application/json`.\nBody: A `features` object keyed by the PCOS model feature names (for example the keys shown here).\nQuery/URL parameters: None.\nSuccess (200): `{ success: true, disease: \"pcos\", result: { disease, prediction, label, probability, probabilityPositive, riskLevel, riskLabel, featuresUsed } }`.\nErrors: 400 if `features` is missing or invalid downstream; 401 for missing, invalid, or expired JWT; 502 if the AI service rejects or cannot complete the prediction."
+          },
+          "response": []
+        },
+        {
+          "name": "Predict diabetes",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"features\": {\n    \"HighBP\": 0,\n    \"HighChol\": 0,\n    \"CholCheck\": 1,\n    \"BMI\": 24.2,\n    \"Smoker\": 0,\n    \"PhysActivity\": 1,\n    \"Fruits\": 1,\n    \"Veggies\": 1,\n    \"GenHlth\": 2,\n    \"MentHlth\": 0,\n    \"PhysHlth\": 0,\n    \"Sex\": 0,\n    \"Age\": 9,\n    \"Education\": 5,\n    \"Income\": 7\n  }\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/api/predictions/diabetes", "host": ["{{baseUrl}}"], "path": ["api", "predictions", "diabetes"] },
+            "description": "Runs a diabetes risk prediction through the AI service; this route does not save an assessment.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nHeaders: `Content-Type: application/json`.\nBody: A `features` object keyed by the diabetes model feature names (for example the keys shown here).\nQuery/URL parameters: None.\nSuccess (200): `{ success: true, disease: \"diabetes\", result: { disease, prediction, label, probability, probabilityPositive, riskLevel, riskLabel, featuresUsed } }`.\nErrors: 400 if `features` is missing or invalid downstream; 401 for missing, invalid, or expired JWT; 502 if the AI service rejects or cannot complete the prediction."
+          },
+          "response": []
+        },
+        {
+          "name": "Predict thyroid",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"features\": {\n    \"age\": 29,\n    \"sex\": 0,\n    \"on_thyroxine\": 0,\n    \"query_on_thyroxine\": 0,\n    \"on_antithyroid_meds\": 0,\n    \"sick\": 0,\n    \"pregnant\": 0,\n    \"tsh_measured\": 1,\n    \"tsh\": 2.1,\n    \"t3_measured\": 1,\n    \"t3\": 1.4,\n    \"tt4_measured\": 1,\n    \"tt4\": 105,\n    \"t4u_measured\": 1,\n    \"t4u\": 1.0,\n    \"fti_measured\": 1,\n    \"fti\": 105\n  }\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/api/predictions/thyroid", "host": ["{{baseUrl}}"], "path": ["api", "predictions", "thyroid"] },
+            "description": "Runs a thyroid prediction through the AI service; this route does not save an assessment.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nHeaders: `Content-Type: application/json`.\nBody: A `features` object keyed by the thyroid model feature names (for example the keys shown here).\nQuery/URL parameters: None.\nSuccess (200): `{ success: true, disease: \"thyroid\", result: { disease, prediction, label, probability, probabilityPositive, riskLevel, riskLabel, featuresUsed } }`.\nErrors: 400 if `features` is missing or invalid downstream; 401 for missing, invalid, or expired JWT; 502 if the AI service rejects or cannot complete the prediction."
+          },
+          "response": []
+        },
+        {
+          "name": "Run full health assessment",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"pcos\": {\n    \"Age_yrs\": 29,\n    \"Weight_Kg\": 62,\n    \"Height_Cm\": 165,\n    \"BMI\": 22.8,\n    \"Cycle_length_days\": 28,\n    \"Cycle_R_I\": 1\n  },\n  \"diabetes\": {\n    \"HighBP\": 0,\n    \"HighChol\": 0,\n    \"BMI\": 22.8,\n    \"GenHlth\": 2,\n    \"Age\": 9,\n    \"Sex\": 0\n  },\n  \"thyroid\": {\n    \"age\": 29,\n    \"sex\": 0,\n    \"tsh_measured\": 1,\n    \"tsh\": 2.1,\n    \"tt4_measured\": 1,\n    \"tt4\": 105\n  }\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/api/predictions/assessment", "host": ["{{baseUrl}}"], "path": ["api", "predictions", "assessment"] },
+            "description": "Runs PCOS, diabetes, and thyroid predictions in parallel and stores the combined assessment for the authenticated user. The backend defaults omitted model objects to empty objects.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nHeaders: `Content-Type: application/json`.\nBody: Optional objects `pcos`, `diabetes`, and `thyroid`, each containing keys for its corresponding model.\nQuery/URL parameters: None.\nSuccess (201): `{ success: true, message, assessment: { id, userId, results: { pcos, diabetes, thyroid }, createdAt } }`.\nErrors: 401 for missing, invalid, or expired JWT; 502 if any AI prediction fails."
+          },
+          "response": []
+        },
+        {
+          "name": "Get latest assessment",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/predictions/latest", "host": ["{{baseUrl}}"], "path": ["api", "predictions", "latest"] },
+            "description": "Returns the most recent saved full assessment for the authenticated user. Run a full assessment first to create one.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nInput: None; no query or URL parameters.\nSuccess (200): `{ success: true, assessment: { id, userId, results, createdAt } }`.\nErrors: 401 for missing, invalid, or expired JWT; 404 if no assessment exists; 500 for a server error."
+          },
+          "response": []
+        },
+        {
+          "name": "Get assessment history",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/predictions/history", "host": ["{{baseUrl}}"], "path": ["api", "predictions", "history"] },
+            "description": "Returns up to the 10 most recently created saved assessments for the authenticated user.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nInput: None; no query or URL parameters.\nSuccess (200): `{ success: true, assessments: [{ id, userId, results, createdAt }] }`; an empty history is `assessments: []`.\nErrors: 401 for missing, invalid, or expired JWT; 500 for a server error."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Blood Reports",
+      "item": [
+        {
+          "name": "Upload blood report",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [],
+            "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": "" }] },
+            "url": { "raw": "{{baseUrl}}/api/blood-reports", "host": ["{{baseUrl}}"], "path": ["api", "blood-reports"] },
+            "description": "Uploads a blood report file, extracts supported laboratory values from PDFs, generates a summary, and stores the report record.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nContent type: `multipart/form-data`; let Postman set the boundary. Required form-data file field: `file`. Accepted files: PDF, JPG/JPEG, or PNG; maximum size is 10 MB.\nQuery/URL parameters: None.\nSuccess (201): `{ success: true, message, bloodReport: { id, userId, originalFileName, filePath, uploadedAt, extractedResults, aiSummary } }`. Scanned image content is not extracted by the current controller; image uploads still create a record.\nErrors: 400 if file is missing or unsupported; 401 for missing, invalid, or expired JWT; 413 if file is over 10 MB; 500 if processing or persistence fails."
+          },
+          "response": []
+        },
+        {
+          "name": "List blood reports",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/blood-reports", "host": ["{{baseUrl}}"], "path": ["api", "blood-reports"] },
+            "description": "Lists blood report records belonging to the authenticated user, newest first. Upload a report first to populate the list.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nInput: None; no query or URL parameters.\nSuccess (200): `{ success: true, bloodReports: [{ id, userId, originalFileName, filePath, uploadedAt, extractedResults, aiSummary }] }`; an empty list is `bloodReports: []`.\nErrors: 401 for missing, invalid, or expired JWT; 500 for a server error."
+          },
+          "response": []
+        },
+        {
+          "name": "Get blood report by ID",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/blood-reports/:id", "host": ["{{baseUrl}}"], "path": ["api", "blood-reports", ":id"], "variable": [{ "key": "id", "value": "replace-with-report-id", "description": "Report ID returned by upload or list" }] },
+            "description": "Returns one blood report belonging to the authenticated user. Set `id` to a report ID returned by Upload or List blood reports.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nURL parameter: `id` (required).\nQuery/body: None.\nSuccess (200): `{ success: true, bloodReport: { id, userId, originalFileName, filePath, uploadedAt, extractedResults, aiSummary } }`.\nErrors: 401 for missing, invalid, or expired JWT; 404 if the report is not found for this user; 500 for a server error."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health Journal",
+      "item": [
+        {
+          "name": "Create journal entry",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"date\": \"2026-09-30\",\n  \"symptoms\": [\"fatigue\", \"headache\"],\n  \"notes\": \"Noticed symptoms after a short night of sleep.\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/api/journal", "host": ["{{baseUrl}}"], "path": ["api", "journal"] },
+            "description": "Creates a journal entry and adds an automated general-information insight.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nHeaders: `Content-Type: application/json`.\nBody: Required `date` in `YYYY-MM-DD` format; optional `symptoms` array of strings (non-string/blank entries are dropped and at most 20 are retained); optional `notes` string up to 5000 characters (defaults to an empty string).\nQuery/URL parameters: None.\nSuccess (201): `{ success: true, message, entry: { id, userId, date, symptoms, notes, automatedInsight, createdAt } }`.\nErrors: 400 for invalid/missing date or invalid/overlong notes; 401 for missing, invalid, or expired JWT; 500 for a server error."
+          },
+          "response": []
+        },
+        {
+          "name": "List journal entries",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/journal", "host": ["{{baseUrl}}"], "path": ["api", "journal"] },
+            "description": "Lists journal entries belonging to the authenticated user. Create an entry first to populate the list.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nInput: None; no query or URL parameters.\nSuccess (200): `{ success: true, entries: [{ id, userId, date, symptoms, notes, automatedInsight, createdAt }] }`; an empty list is `entries: []`.\nErrors: 401 for missing, invalid, or expired JWT; 500 for a server error."
+          },
+          "response": []
+        },
+        {
+          "name": "Get journal entry by ID",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/journal/:id", "host": ["{{baseUrl}}"], "path": ["api", "journal", ":id"], "variable": [{ "key": "id", "value": "replace-with-entry-id", "description": "Journal entry ID returned by create or list" }] },
+            "description": "Returns one journal entry belonging to the authenticated user. Set `id` to an entry ID returned by Create or List journal entries.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nURL parameter: `id` (required).\nQuery/body: None.\nSuccess (200): `{ success: true, entry: { id, userId, date, symptoms, notes, automatedInsight, createdAt } }`.\nErrors: 401 for missing, invalid, or expired JWT; 404 if the entry is not found for this user; 500 for a server error."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI Assistant",
+      "item": [
+        {
+          "name": "Send assistant message",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"message\": \"What are some common reasons for feeling tired during the day?\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/api/assistant/chat", "host": ["{{baseUrl}}"], "path": ["api", "assistant", "chat"] },
+            "description": "Sends a health-information question to the assistant and attempts to save the exchange in the user's chat history.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nHeaders: `Content-Type: application/json`.\nBody: Required non-empty string `message`.\nQuery/URL parameters: None.\nSuccess (200): `{ success: true, reply: \"...\" }`.\nErrors: 400 if message is missing, not a string, or blank; 401 for missing, invalid, or expired JWT; 500 if the assistant service is not configured; 502 if the assistant provider fails or returns an empty response. A chat persistence failure is logged but does not fail an otherwise successful reply."
+          },
+          "response": []
+        },
+        {
+          "name": "Get assistant chat history",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/assistant/chats", "host": ["{{baseUrl}}"], "path": ["api", "assistant", "chats"] },
+            "description": "Returns persisted assistant messages for the authenticated user. Send an assistant message first to create history.\n\nAuthentication: Required; `Authorization: Bearer {{token}}` from Login or Register.\nInput: None; no query or URL parameters.\nSuccess (200): `{ success: true, messages: [{ role, content, createdAt }] }`; no history returns `messages: []`.\nErrors: 401 for missing, invalid, or expired JWT; 500 if chat history cannot be loaded."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ]
+}
